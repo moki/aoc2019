@@ -9,7 +9,7 @@ DEPDIR := .d
 $(shell mkdir -p $(DEPDIR) >/dev/null)
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 # CFLAGS = -std=c99 -D_POSIX_C_SOURCE -Wshadow -Wall -pedantic -Wextra -g -O3 -flto -pthread
-CXXFLAGS = -Wshadow -Wall -pedantic -Wextra -g -O3 -flto
+CXXFLAGS = -std=c++1z -Wshadow -Wall -pedantic -Wextra -g -O3 -flto
 # -pthread
 TARGET_ARCH =-march=native
 # LDFLAGS = -lpthread
@@ -18,9 +18,9 @@ TARGET_ARCH =-march=native
 LDLIBS =
 
 $(TARGET): $(OBJS)
-	$(CXX) $(OBJS) $(LDFLAGS) $(LDLIBS) -o $@
+	$(CXX) $(CXXFLAGS) $(OBJS) $(LDFLAGS) $(LDLIBS) -o $@
 
-COMPILE.cpp = $(CXX) $(DEPFLAGS) $(CFLAGS) $(CXXFLAGS) $(TARGET_ARCH) -c
+COMPILE.cpp = $(CXX) $(DEPFLAGS) $(CXXFLAGS) $(TARGET_ARCH) -c
 POSTCOMPILE = @mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d && touch $@
 
 %.o : %.cpp
