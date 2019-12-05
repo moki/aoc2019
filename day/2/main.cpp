@@ -4,24 +4,28 @@
 
 const char SEPARATOR = ',';
 
-int main(int argc, char **argv) {
-        Emulator emu;
+int main() {
+        Emulator emu = Emulator();
         std::string line;
         std::vector<long> code;
 
         for (; std::getline(std::cin, line, SEPARATOR);)
                 code.push_back(atoi(line.c_str()));
-        for (auto c : code)
-                emu.add(c);
+
+        /* cash test */
+        /*
+        emu.loadMemory(code);
+        emu.execute();
+        exit(0);
+        */
 
         /* part 1 */
+        emu.loadMemory(code);
         /* restore 1202 program alarm state */
-        emu.setCode(1, 12);
-        emu.setCode(2, 2);
+        emu.setMemory(1, 12);
+        emu.setMemory(2, 2);
         emu.execute();
-        std::cout << emu.getCode(0) << "\n";
-
-        emu.restart();
+        std::cout << emu.getMemory(0) << "\n";
 
         /* part 2 */
         size_t i, j;
@@ -29,15 +33,13 @@ int main(int argc, char **argv) {
         for (i = 0; i < 100; i++) {
                 for (j = 0; j < 100; j++) {
                         emu.restart();
-                        for (auto c : code)
-                                emu.add(c);
-                        emu.setCode(1, i);
-                        emu.setCode(2, j);
+                        emu.loadMemory(code);
+                        emu.setMemory(1, i);
+                        emu.setMemory(2, j);
                         emu.execute();
-
-                        if (emu.getCode(0) == 19690720) {
-                                pair.push_back(emu.getCode(1));
-                                pair.push_back(emu.getCode(2));
+                        if (emu.getMemory(0) == 19690720) {
+                                pair.push_back(emu.getMemory(1));
+                                pair.push_back(emu.getMemory(2));
                                 goto found;
                         }
                 }
