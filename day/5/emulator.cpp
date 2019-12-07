@@ -5,6 +5,10 @@ constexpr int64_t op_add = 1;
 constexpr int64_t op_mul = 2;
 constexpr int64_t syscall_read = 3;
 constexpr int64_t syscall_write = 4;
+constexpr int64_t op_jifft = 5;
+constexpr int64_t op_jifff = 6;
+constexpr int64_t op_slt = 7;
+constexpr int64_t op_seq = 8;
 constexpr int64_t syscall_exit = 99;
 constexpr size_t MAX_OPCODE = 99;
 
@@ -23,6 +27,10 @@ void Emulator::init() {
         il.assign(MAX_OPCODE, 0);
         il[op_add - 1] = 4;
         il[op_mul - 1] = 4;
+        il[op_jifft - 1] = 3;
+        il[op_jifff - 1] = 3;
+        il[op_slt - 1] = 4;
+        il[op_seq - 1] = 4;
         il[syscall_read - 1] = 2;
         il[syscall_write - 1] = 2;
         il[syscall_exit - 1] = 1;
@@ -90,6 +98,56 @@ void Emulator::execute_instruction(
                 pc = pc + l;
                 break;
         }
+        case op_jifft: {
+                auto [v0, m0] = parsed_instruction[1];
+                if (!m0)
+                        v0 = memory[v0];
+                auto [v1, m1] = parsed_instruction[2];
+                if (!m1)
+                        v1 = memory[v1];
+                if (v0)
+                        pc = v1;
+                else
+                        pc = pc + l;
+                break;
+        }
+        case op_jifff: {
+                auto [v0, m0] = parsed_instruction[1];
+                if (!m0)
+                        v0 = memory[v0];
+                auto [v1, m1] = parsed_instruction[2];
+                if (!m1)
+                        v1 = memory[v1];
+                if (!v0)
+                        pc = v1;
+                else
+                        pc = pc + l;
+                break;
+        }
+        case op_slt: {
+                auto [v0, m0] = parsed_instruction[1];
+                if (!m0)
+                        v0 = memory[v0];
+                auto [v1, m1] = parsed_instruction[2];
+                if (!m1)
+                        v1 = memory[v1];
+                auto [v2, _] = parsed_instruction[3];
+                memory[v2] = v0 < v1 ? 1 : 0;
+                pc = pc + l;
+                break;
+        }
+        case op_seq: {
+                auto [v0, m0] = parsed_instruction[1];
+                if (!m0)
+                        v0 = memory[v0];
+                auto [v1, m1] = parsed_instruction[2];
+                if (!m1)
+                        v1 = memory[v1];
+                auto [v2, _] = parsed_instruction[3];
+                memory[v2] = v0 == v1 ? 1 : 0;
+                pc = pc + l;
+                break;
+        }
         case syscall_exit: {
                 (*terminate) = true;
                 pc = pc + l;
@@ -107,6 +165,7 @@ void Emulator::execute_instruction(
                 auto [v0, m0] = parsed_instruction[1];
                 if (!m0)
                         v0 = memory[v0];
+                std::cout << v0;
                 pc = pc + l;
                 break;
         }
