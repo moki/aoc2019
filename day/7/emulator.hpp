@@ -31,9 +31,11 @@ class Emulator {
                 void loadMemory(const std::vector<int64_t> &mem);
                 std::stringstream &get_stdin();
                 std::stringstream &get_stdout();
-                void run();
+                void reset_buffers();
+                void run(bool pause_on_output);
                 void restart();
         private:
+                bool _pause_on_output;
                 std::stringstream input;
                 std::stringstream output;
                 size_t pc;
@@ -43,6 +45,6 @@ class Emulator {
                 void parse_instruction(
                         std::vector<std::tuple<int64_t, uint8_t>> *parsed_instruction);
                 void execute_instruction(
-                        const std::vector<std::tuple<int64_t, uint8_t>> &parsed_instruction, bool *terminate);
+                        const std::vector<std::tuple<int64_t, uint8_t>> &parsed_instruction, bool *pause);
                 void init();
 };

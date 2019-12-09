@@ -15,7 +15,6 @@ constexpr size_t MAX_OPCODE = 99;
 Emulator::Emulator(const std::vector<int64_t> &mem) {
         loadMemory(mem);
         init();
-        std::cout << "created emulator\n";
 }
 
 Emulator::Emulator() { init(); }
@@ -36,10 +35,7 @@ void Emulator::init() {
         il[syscall_write - 1] = 2;
         il[syscall_exit - 1] = 1;
 
-        input.str(std::string());
-        input.clear();
-        output.str(std::string());
-        output.clear();
+        reset_buffers();
 }
 
 void Emulator::setMemory(size_t location, int64_t value) {
@@ -57,6 +53,10 @@ void Emulator::restart() {
         memory.clear();
         cash.clear();
         pc = 0;
+        reset_buffers();
+}
+
+void Emulator::reset_buffers() {
         input.str(std::string());
         input.clear();
         output.str(std::string());
@@ -67,10 +67,11 @@ std::stringstream &Emulator::get_stdout() { return output; }
 
 std::stringstream &Emulator::get_stdin() { return input; }
 
-void Emulator::run() {
+void Emulator::run(bool pause_on_output) {
         std::vector<std::tuple<int64_t, uint8_t>> parsed_instruction(4);
         std::tuple di = std::make_tuple(0, 0);
-        bool terminate = false;
+        _pause_on_output = pause_on_output;
+        bool pause = false;
         parsed_instruction.reserve(4);
         parsed_instruction.assign(4, di);
 
@@ -78,8 +79,8 @@ void Emulator::run() {
                 std::fill(parsed_instruction.begin(), parsed_instruction.end(),
                           di);
                 parse_instruction(&parsed_instruction);
-                execute_instruction(parsed_instruction, &terminate);
-                if (terminate)
+                execute_instruction(parsed_instruction, &pause);
+                if (pause)
                         return;
         }
 }
@@ -101,7 +102,7 @@ void Emulator::parse_instruction(
 
 void Emulator::execute_instruction(
         const std::vector<std::tuple<int64_t, uint8_t>> &parsed_instruction,
-        bool *terminate) {
+        bool *pause) {
         auto [opcode, l] = parsed_instruction[0];
 
         switch (opcode) {
@@ -180,8 +181,7 @@ void Emulator::execute_instruction(
                 break;
         }
         case syscall_exit: {
-                (*terminate) = true;
-                pc = pc + l;
+                pc = memory.size();
                 break;
         }
         case syscall_read: {
@@ -196,6 +196,8 @@ void Emulator::execute_instruction(
                         v0 = memory[v0];
                 output << v0;
                 pc = pc + l;
+                if (_pause_on_output)
+                        (*pause) = true;
                 break;
         }
         }
